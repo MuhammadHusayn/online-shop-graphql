@@ -1,7 +1,11 @@
-# scalar types
+# scalar types with type check
 scalar Contact
 scalar Email
 scalar DateTime
+
+# scalar types without type check
+scalar Token
+scalar Any
 
 
 # input types
@@ -14,4 +18,11 @@ input Pagination {
 enum SortOption {
 	toLargest
 	toSmallest
+}
+
+# types
+type MutationResponse {
+	status: Int!
+	message: String!
+	data: Any
 }

@@ -7,9 +7,25 @@ type Query {
 	): [User!]!
 }
 
-input UserSort {
-	userId: SortOption
-	username: SortOption
+type Mutation {
+	login(
+		username: String! 
+		password: String!
+	): AuthResponse!
+
+	register(
+		username: String! 
+		password: String!
+		contact: Contact!
+		email: Email
+	): AuthResponse!
+
+	changeUser(
+		username: String
+		password: String
+		contact: Contact
+		email: Email
+	): MutationResponse!
 }
 
 type User {
@@ -18,4 +34,16 @@ type User {
 	contact: Contact!
 	email: Email
 	userCreatedAt: DateTime!
+}
+
+type AuthResponse {
+	status: Int!
+	message: String!
+	token: Token
+	user: User
+}
+
+input UserSort {
+	userId: SortOption
+	username: SortOption
 }

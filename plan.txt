@@ -4,7 +4,7 @@
 		users
 			filter: userId, search
 			pagination
-			sort: username, createdAt
+			sort: username, userId
 		deletedUsers
 			filter: userId, search
 			pagination

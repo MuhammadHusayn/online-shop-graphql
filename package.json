@@ -13,7 +13,8 @@
   "license": "ISC",
   "imports": {
     "#config": "./config.js",
-    "#pg": "./src/utils/postgres.js"
+    "#pg": "./src/utils/postgres.js",
+    "#jwt": "./src/utils/jwt.js"
   },
   "dependencies": {
     "@graphql-tools/schema": "^8.3.1",

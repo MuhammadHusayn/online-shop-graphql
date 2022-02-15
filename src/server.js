@@ -7,6 +7,8 @@ import express from 'express'
 import http from 'http'
 import { PORT } from '#config'
 import schema from './modules/index.js'
+import context from './context.js'
+
 
 async function startApolloServer(typeDefs, resolvers) {
 
@@ -14,6 +16,7 @@ async function startApolloServer(typeDefs, resolvers) {
   	const httpServer = http.createServer(app)
 	
   	const server = new ApolloServer({
+  		context,
   		schema,
   		plugins: [
   			ApolloServerPluginLandingPageGraphQLPlayground(),

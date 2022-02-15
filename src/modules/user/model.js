@@ -7,7 +7,7 @@ const USERS = `
 		username,
 		contact,
 		email,
-		user_created_at
+		TO_CHAR(user_created_at, 'YYYY-MM-DD hh:mm:ss') user_created_at
 	FROM users
 	WHERE user_deleted_at IS NULL AND
 	CASE
@@ -37,7 +37,49 @@ const USERS = `
 	OFFSET $1 LIMIT $2
 `
 
-const users = ({ pagination,userId, search, sort }) => {
+const LOGIN = `
+	SELECT
+		user_id,
+		username,
+		contact,
+		is_admin,
+		email,
+		TO_CHAR(user_created_at, 'YYYY-MM-DD hh:mm:ss') user_created_at
+	FROM users
+	WHERE user_deleted_at IS NULL AND 
+	username = $1 AND password = crypt($2, password)
+`
+
+const REGISTER = `
+	INSERT INTO users (
+		username,
+		password,
+		contact,
+		email
+	) VALUES ($1, crypt($2, gen_salt('bf')), $3, $4)
+	RETURNING user_id, username, contact, email, is_admin
+`
+
+const CHANGE_USER = `
+	UPDATE users SET
+		username = (
+			CASE WHEN LENGTH($2) > 0 THEN $2 ELSE username END
+		),
+		password = (
+			CASE WHEN LENGTH($3) > 0 THEN crypt($3, gen_salt('bf')) ELSE password END
+		),
+		contact = (
+			CASE WHEN LENGTH($4) > 0 THEN $4 ELSE contact END
+		),
+		email = (
+			CASE WHEN LENGTH($5) > 0 THEN $5 ELSE email END
+		)
+	WHERE user_deleted_at IS NULL AND user_id = $1
+	RETURNING user_id, username, contact, email, is_admin
+`
+
+
+const users = ({ pagination, userId, search, sort }, context) => {
 	const page = pagination.page || dp.page
 	const limit = pagination.limit || dp.limit
 
@@ -48,6 +90,9 @@ const users = ({ pagination,userId, search, sort }) => {
 		}
 	}).filter( elem => elem !== undefined )[0]
 
+	if(context.role == 'user') {
+		userId = context.userId
+	}
 
 	return fetchAll(
 		USERS, 
@@ -56,7 +101,22 @@ const users = ({ pagination,userId, search, sort }) => {
 	)
 }
 
+const changeUser = ({ username, password, contact, email }, context) => {
+	return fetch(CHANGE_USER, context.userId, username, password, contact, email)
+}
+
+const login = ({ username, password }) => {
+	return fetch(LOGIN, username, password)
+}
+
+const register = ({ username, password, contact, email }) => {
+	return fetch(REGISTER, username, password, contact, email)
+}
+
 
 export default {
-	users
+	changeUser,
+	register,
+	users,
+	login
 }
