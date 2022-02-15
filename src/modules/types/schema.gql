@@ -1,0 +1,17 @@
+# scalar types
+scalar Contact
+scalar Email
+scalar DateTime
+
+
+# input types
+input Pagination {
+	page: Int
+	limit: Int
+}
+
+# enum types
+enum SortOption {
+	toLargest
+	toSmallest
+}

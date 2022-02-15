@@ -1,0 +1,21 @@
+type Query {
+	users(
+		userId: ID
+		search: String
+		sort: UserSort = {}
+		pagination: Pagination = {}
+	): [User!]!
+}
+
+input UserSort {
+	userId: SortOption
+	username: SortOption
+}
+
+type User {
+	userId: ID!
+	username: String!
+	contact: Contact!
+	email: Email
+	userCreatedAt: DateTime!
+}
