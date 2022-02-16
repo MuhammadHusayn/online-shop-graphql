@@ -58,17 +58,62 @@ export default {
 				}
 			}
 		},
+
+		deleteUser: async (_, args, context) => {
+			try {
+				const user = await model.deleteUser(context)
+				if(user) {
+					return {
+						status: 200,
+						message: "The user deleted!",
+						data: user,
+					}
+				} else throw new Error("The user already deleted or not exists!")
+			} catch(error) {
+				return {
+					status: 401,
+					message: error.message
+				}
+			}
+		},
+
+		restoreUser: async (_, args, context) => {
+			try {
+				const user = await model.restoreUser(args, context)
+				if(user) {
+					return {
+						status: 200,
+						message: "The user restored!",
+						data: user,
+					}
+				} else throw new Error("The user already restored or not exists!")
+			} catch(error) {
+				return {
+					status: 401,
+					message: error.message
+				}
+			}
+		},
 	},
 
 	Query: {
 		users: (_, args, context) => {
 			try {
-				const users = model.users(args, context)
+				const users = model.users({ ...args, isDeleted: false }, context)
 				return users
 			} catch(error) {
 				throw error
 			}
-		}
+		},
+
+		deletedUsers: (_, args, context) => {
+			try {
+				const users = model.users({ ...args, isDeleted: true }, context)
+				return users
+			} catch(error) {
+				throw error
+			}
+		},
 	},
 
 	User: {

@@ -9,30 +9,34 @@ const USERS = `
 		email,
 		TO_CHAR(user_created_at, 'YYYY-MM-DD hh:mm:ss') user_created_at
 	FROM users
-	WHERE user_deleted_at IS NULL AND
+	WHERE
 	CASE
-		WHEN $3 > 0 THEN user_id = $3
+		WHEN $3 = TRUE THEN user_deleted_at IS NOT NULL
+		WHEN $3 = FALSE THEN user_deleted_at IS NULL
+	END AND
+	CASE
+		WHEN $4 > 0 THEN user_id = $4
 		ELSE TRUE
 	END AND
 	CASE
-		WHEN LENGTH($4) > 2 THEN (
-			username ILIKE CONCAT('%', $4, '%') OR
-			contact ILIKE CONCAT('%', $4, '%') OR
-			email ILIKE CONCAT('%', $4, '%')
+		WHEN LENGTH($5) > 2 THEN (
+			username ILIKE CONCAT('%', $5, '%') OR
+			contact ILIKE CONCAT('%', $5, '%') OR
+			email ILIKE CONCAT('%', $5, '%')
 		) ELSE TRUE
 	END
 	ORDER BY
 	CASE
-		WHEN $5 = 1 AND $6 = 1 THEN username
+		WHEN $6 = 1 AND $7 = 1 THEN username
 	END ASC,
 	CASE
-		WHEN $5 = 1 AND $6 = 2 THEN username
+		WHEN $6 = 1 AND $7 = 2 THEN username
 	END DESC,
 	CASE
-		WHEN $5 = 2 AND $6 = 1 THEN user_id
+		WHEN $6 = 2 AND $7 = 1 THEN user_id
 	END ASC,
 	CASE
-		WHEN $5 = 2 AND $6 = 2 THEN user_id
+		WHEN $6 = 2 AND $7 = 2 THEN user_id
 	END DESC
 	OFFSET $1 LIMIT $2
 `
@@ -78,16 +82,28 @@ const CHANGE_USER = `
 	RETURNING user_id, username, contact, email, is_admin
 `
 
+const DELETE_USER = `
+	UPDATE users SET
+		user_deleted_at = current_timestamp
+	WHERE user_deleted_at IS NULL AND user_id = $1
+	RETURNING user_id, username, contact, email, is_admin
+`
 
-const users = ({ pagination, userId, search, sort }, context) => {
+const RESTORE_USER = `
+	UPDATE users SET
+		user_deleted_at = NULL
+	WHERE user_deleted_at IS NOT NULL AND 
+	username = $1 AND password = crypt($2, password)
+	RETURNING user_id, username, contact, email, is_admin
+`
+
+const users = ({ pagination, userId, search, sort, isDeleted }, context) => {
 	const page = pagination.page || dp.page
 	const limit = pagination.limit || dp.limit
 
 	let sortOptions = { username: 1, userId: 2 }
 	const sortObject = Object.keys(sort).map(key => {
-		if(sort[key]) {
-			return { sortKey: sortOptions[key], value: sort[key] }
-		}
+		return { sortKey: sortOptions[key], value: sort[key] }
 	}).filter( elem => elem !== undefined )[0]
 
 	if(context.role == 'user') {
@@ -96,13 +112,21 @@ const users = ({ pagination, userId, search, sort }, context) => {
 
 	return fetchAll(
 		USERS, 
-	 	(page - 1) * limit, limit, userId, search,
+	 	(page - 1) * limit, limit, isDeleted, userId, search,
 		sortObject?.sortKey || 2, sortObject?.value || 1
 	)
 }
 
 const changeUser = ({ username, password, contact, email }, context) => {
 	return fetch(CHANGE_USER, context.userId, username, password, contact, email)
+}
+
+const deleteUser = ({ userId }) => {
+	return fetch(DELETE_USER, userId)
+}
+
+const restoreUser = ({ username, password }) => {
+	return fetch(RESTORE_USER, username, password)
 }
 
 const login = ({ username, password }) => {
@@ -114,7 +138,10 @@ const register = ({ username, password, contact, email }) => {
 }
 
 
+
 export default {
+	restoreUser,
+	deleteUser,
 	changeUser,
 	register,
 	users,

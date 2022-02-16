@@ -5,6 +5,13 @@ type Query {
 		sort: UserSort = {}
 		pagination: Pagination = {}
 	): [User!]!
+
+	deletedUsers(
+		userId: ID
+		search: String
+		sort: UserSort = {}
+		pagination: Pagination = {}
+	): [User!]!
 }
 
 type Mutation {
@@ -25,6 +32,13 @@ type Mutation {
 		password: String
 		contact: Contact
 		email: Email
+	): MutationResponse!
+
+	deleteUser: MutationResponse!
+	
+	restoreUser(
+		username: String! 
+		password: String!
 	): MutationResponse!
 }
 

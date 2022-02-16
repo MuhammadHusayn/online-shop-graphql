@@ -18,6 +18,17 @@
 
 
 * categories
+	categories
+	addCategory
+	changeCategory
+	deleteCategory
+
+
 * products
+	products
+	addProduct
+	changeProduct
+	deleteProduct
+
 * orders
 * statistic

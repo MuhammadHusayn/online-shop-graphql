@@ -13,7 +13,8 @@ export default ({ req }) => {
 				'login',
 				'register',
 				'categories',
-				'products'
+				'products',
+				'restoreUser'
 			].includes(fieldName)
 		) {
 			return {
@@ -34,10 +35,34 @@ export default ({ req }) => {
 			throw new Error("The user has requested from wrong device!")
 		}
 
-		return {
-			agent: req.headers['user-agent'],
-			userId: user_id,
-			role: is_admin ? 'admin' : 'user'
+		// queries for admin and users
+		if(
+			[
+				'users',
+				'deleteUser',
+				'changeUser',
+			].includes(fieldName)
+		) {
+			return {
+				agent: req.headers['user-agent'],
+				userId: user_id,
+				role: is_admin ? 'admin' : 'user'
+			}
+		}
+
+		// queries for only admins
+		if(
+			[
+				'deletedUsers',
+			].includes(fieldName) && is_admin
+		) {
+			return {
+				agent: req.headers['user-agent'],
+				userId: user_id,
+				role: is_admin ? 'admin' : 'user'
+			}
+		} else {
+			throw new Error("You are not allowed")
 		}
 	
 	} catch(error) {

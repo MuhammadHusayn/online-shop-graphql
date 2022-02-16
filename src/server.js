@@ -11,10 +11,9 @@ import context from './context.js'
 
 
 async function startApolloServer(typeDefs, resolvers) {
-
   	const app = express()
   	const httpServer = http.createServer(app)
-	
+
   	const server = new ApolloServer({
   		context,
   		schema,
